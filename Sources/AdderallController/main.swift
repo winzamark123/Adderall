@@ -1,8 +1,16 @@
 import AdderallShared
+import ArgumentParser
 import Foundation
 
 func runController() throws {
-    let options = try ControllerOptions(arguments: Array(CommandLine.arguments.dropFirst()))
+    let options: ControllerOptions
+
+    do {
+        options = try ControllerOptions.parse(Array(CommandLine.arguments.dropFirst()))
+    } catch {
+        throw ControllerParsingError(underlyingError: error)
+    }
+
     let snapshotStore = try SnapshotStore.userDefault()
     let state = ControllerState(
         snapshotStore: snapshotStore,
@@ -25,66 +33,44 @@ func printError(_ message: String) {
 
 do {
     try runController()
-} catch ControllerOptionsError.helpRequested {
-    print(ControllerUsage.text)
+} catch let error as ControllerParsingError {
+    if error.exitCode == 0 {
+        print(error.message)
+    } else {
+        printError(error.message)
+    }
+
+    exit(error.exitCode)
 } catch {
     printError(error.localizedDescription)
     exit(1)
 }
 
-struct ControllerOptions {
-    let machServiceName: String
+struct ControllerParsingError: Error {
+    let underlyingError: Error
 
-    init(arguments: [String]) throws {
-        var machServiceName = adderallControllerMachServiceName
-        var index = 0
+    var message: String {
+        ControllerOptions.fullMessage(for: underlyingError)
+    }
 
-        while index < arguments.count {
-            let argument = arguments[index]
-
-            switch argument {
-            case "run":
-                index += 1
-            case "--mach-service":
-                let valueIndex = index + 1
-
-                guard valueIndex < arguments.count else {
-                    throw ControllerOptionsError.missingValue(argument)
-                }
-
-                machServiceName = arguments[valueIndex]
-                index += 2
-            case "--help", "-h":
-                throw ControllerOptionsError.helpRequested
-            default:
-                throw ControllerOptionsError.unknownOption(argument)
-            }
-        }
-
-        self.machServiceName = machServiceName
+    var exitCode: Int32 {
+        ControllerOptions.exitCode(for: underlyingError).rawValue
     }
 }
 
-enum ControllerOptionsError: LocalizedError {
-    case helpRequested
-    case unknownOption(String)
-    case missingValue(String)
+struct ControllerOptions: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "adderall-controller",
+        abstract: "Run the Adderall controller service."
+    )
 
-    var errorDescription: String? {
-        switch self {
-        case .helpRequested:
-            return ControllerUsage.text
-        case .unknownOption(let option):
-            return "Unknown controller option: \(option).\n\n\(ControllerUsage.text)"
-        case .missingValue(let option):
-            return "Missing value for \(option).\n\n\(ControllerUsage.text)"
-        }
-    }
+    @Argument(help: "Controller command.")
+    var command: ControllerCommand = .run
+
+    @Option(name: .customLong("mach-service"), help: "Mach service name.")
+    var machServiceName = adderallControllerMachServiceName
 }
 
-enum ControllerUsage {
-    static let text = """
-    Usage:
-      adderall-controller run [--mach-service <name>]
-    """
+enum ControllerCommand: String, ExpressibleByArgument {
+    case run
 }

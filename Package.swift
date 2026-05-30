@@ -26,7 +26,10 @@ let package = Package(
         ),
         .executableTarget(
             name: "AdderallController",
-            dependencies: ["AdderallShared"],
+            dependencies: [
+                "AdderallShared",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
             linkerSettings: [
                 .linkedFramework("IOKit")
             ]
