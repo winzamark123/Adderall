@@ -1,9 +1,10 @@
+import AdderallShared
 import Foundation
 
-public struct LeaseManager: Sendable {
+struct LeaseManager: Sendable {
     private var leasesByKey: [LeaseKey: Lease]
 
-    public init(leases: [Lease] = []) {
+    init(leases: [Lease] = []) {
         var leasesByKey: [LeaseKey: Lease] = [:]
 
         for lease in leases {
@@ -13,7 +14,7 @@ public struct LeaseManager: Sendable {
         self.leasesByKey = leasesByKey
     }
 
-    public var leases: [Lease] {
+    var leases: [Lease] {
         leasesByKey.values.sorted { first, second in
             if first.provider == second.provider {
                 return first.sessionID < second.sessionID
@@ -24,7 +25,7 @@ public struct LeaseManager: Sendable {
     }
 
     @discardableResult
-    public mutating func begin(_ command: LeaseCommand, now: Date = Date()) -> Lease {
+    mutating func begin(_ command: LeaseCommand, now: Date = Date()) -> Lease {
         let key = LeaseKey(provider: command.provider, sessionID: command.sessionID)
 
         if let existingLease = leasesByKey[key] {
@@ -45,17 +46,17 @@ public struct LeaseManager: Sendable {
     }
 
     @discardableResult
-    public mutating func heartbeat(_ command: LeaseCommand, now: Date = Date()) -> Lease {
+    mutating func heartbeat(_ command: LeaseCommand, now: Date = Date()) -> Lease {
         begin(command, now: now)
     }
 
     @discardableResult
-    public mutating func end(provider: String, sessionID: String) -> Lease? {
+    mutating func end(provider: String, sessionID: String) -> Lease? {
         leasesByKey.removeValue(forKey: LeaseKey(provider: provider, sessionID: sessionID))
     }
 
     @discardableResult
-    public mutating func expireLeases(now: Date = Date()) -> [Lease] {
+    mutating func expireLeases(now: Date = Date()) -> [Lease] {
         let expiredLeases = leasesByKey.values.filter { lease in
             lease.expiresAt <= now
         }
@@ -69,27 +70,13 @@ public struct LeaseManager: Sendable {
         }
     }
 
-    public func activeLeases(now: Date = Date()) -> [Lease] {
+    func activeLeases(now: Date = Date()) -> [Lease] {
         leases.filter { lease in
             lease.expiresAt > now
         }
     }
 
-    public func nextExpiry(now: Date = Date()) -> Date? {
+    func nextExpiry(now: Date = Date()) -> Date? {
         activeLeases(now: now).map(\.expiresAt).min()
-    }
-}
-
-public struct LeaseCommand: Equatable, Sendable {
-    public static let defaultTTLSeconds: TimeInterval = 300
-
-    public let provider: String
-    public let sessionID: String
-    public let ttlSeconds: TimeInterval
-
-    public init(provider: String, sessionID: String, ttlSeconds: TimeInterval = LeaseCommand.defaultTTLSeconds) {
-        self.provider = provider
-        self.sessionID = sessionID
-        self.ttlSeconds = ttlSeconds
     }
 }

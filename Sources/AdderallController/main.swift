@@ -1,8 +1,10 @@
 import AdderallShared
 import ArgumentParser
 import Foundation
+import Logging
+import ServiceLifecycle
 
-func runController() throws {
+func runController() async throws {
     let options: ControllerOptions
 
     do {
@@ -17,13 +19,17 @@ func runController() throws {
         awakeAssertionController: AwakeAssertionController()
     )
     let service = ControllerXPCService(state: state)
-    let delegate = ControllerXPCListenerDelegate(service: service)
-    let listener = NSXPCListener(machServiceName: options.machServiceName)
-    listener.delegate = delegate
-    listener.resume()
+    let listenerService = ControllerXPCListenerService(
+        machServiceName: options.machServiceName,
+        service: service
+    )
+    let serviceGroup = ServiceGroup(
+        services: [listenerService],
+        gracefulShutdownSignals: [.sigterm, .sigint],
+        logger: Logger(label: "com.example.adderall.controller")
+    )
 
-    print("adderall-controller listening on \(options.machServiceName)")
-    RunLoop.main.run()
+    try await serviceGroup.run()
 }
 
 func printError(_ message: String) {
@@ -32,7 +38,7 @@ func printError(_ message: String) {
 }
 
 do {
-    try runController()
+    try await runController()
 } catch let error as ControllerParsingError {
     if error.exitCode == 0 {
         print(error.message)

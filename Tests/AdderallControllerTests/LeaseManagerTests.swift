@@ -1,5 +1,6 @@
+import AdderallShared
+@testable import AdderallController
 import XCTest
-@testable import AdderallShared
 
 final class LeaseManagerTests: XCTestCase {
     func testBeginCreatesLease() {

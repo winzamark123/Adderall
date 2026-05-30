@@ -4,6 +4,18 @@
 
 This repo uses `memories/` to preserve architecture and planning snapshots over time.
 
+Before analysis, planning, or code edits:
+
+- Read `README.md` for the current product direction.
+- Read `memories/index.md` before reading individual memory snapshots.
+- Use the memory index to choose task-relevant memory files. Do not bulk-read every snapshot by default.
+- If `memories/index.md` is missing or appears stale, list `memories/*.md` in chronological order and read filenames/headings before choosing files.
+- Search `memories/` for task-relevant terms before touching code. Prioritize terms related to touched paths, Swift APIs, XPC, LaunchAgents, power assertions, leases, hooks, controller state, and testing.
+- In the first substantive response, include a short "Memory context" note listing memory files read, current decisions that apply, and stale or conflicting older decisions when present.
+- Treat older memories as historical. Current `README.md`, current source, and newer memories override older snapshots.
+- Verify memory claims against current source before editing.
+- If a durable decision, Swift gotcha, testing constraint, or repeated correction is discovered, propose an update to `memories/index.md` or `memories/inbox.md` before final handoff.
+
 When making a meaningful README or architecture change:
 
 - Create `memories/` if it does not exist.
