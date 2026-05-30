@@ -13,6 +13,7 @@ When making a meaningful README or architecture change:
 - If the new content is not committed yet, use the current local date and mention that assumption in the final response.
 - After writing the new `README.md`, copy the new version into `memories/` with the next version number.
 - Do not delete old memories unless explicitly asked.
+- Be proactive about making sure that the readme reflects what we are currently trying to implement
 
 Example:
 
