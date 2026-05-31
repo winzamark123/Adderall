@@ -54,6 +54,8 @@ struct ControllerClient {
                 responseBox.response = response
                 semaphore.signal()
             }
+        case .hook, .install, .uninstall:
+            throw ControllerClientError.unsendableCommand
         case .status:
             controller.status { response in
                 responseBox.response = response
@@ -82,6 +84,7 @@ enum ControllerClientError: LocalizedError {
     case invalidRemoteProxy
     case timeout
     case emptyResponse
+    case unsendableCommand
 
     var errorDescription: String? {
         switch self {
@@ -91,6 +94,8 @@ enum ControllerClientError: LocalizedError {
             return "Timed out waiting for the Adderall controller. Is the LaunchAgent loaded?"
         case .emptyResponse:
             return "The Adderall controller returned no response."
+        case .unsendableCommand:
+            return "This command cannot be sent directly to the Adderall controller."
         }
     }
 }

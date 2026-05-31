@@ -34,6 +34,24 @@ final class CLIParserTests: XCTestCase {
         XCTAssertEqual(command, .end(provider: "claude", sessionID: "abc"))
     }
 
+    func testHookParsesClaudeProvider() throws {
+        let command = try CLIParser().parse(arguments: ["hook", "claude"])
+
+        XCTAssertEqual(command, .hook(.claude))
+    }
+
+    func testInstallParsesClaudeProvider() throws {
+        let command = try CLIParser().parse(arguments: ["install", "claude"])
+
+        XCTAssertEqual(command, .install(.claude))
+    }
+
+    func testUninstallParsesClaudeProvider() throws {
+        let command = try CLIParser().parse(arguments: ["uninstall", "claude"])
+
+        XCTAssertEqual(command, .uninstall(.claude))
+    }
+
     func testStatusParsesJSONFlag() throws {
         let command = try CLIParser().parse(arguments: ["status", "--json"])
 

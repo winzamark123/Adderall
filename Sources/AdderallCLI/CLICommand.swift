@@ -6,7 +6,18 @@ enum CLICommand: Equatable {
     case begin(LeaseCommand)
     case heartbeat(LeaseCommand)
     case end(provider: String, sessionID: String)
+    case hook(HookProvider)
+    case install(IntegrationProvider)
+    case uninstall(IntegrationProvider)
     case status(json: Bool)
+}
+
+enum HookProvider: Equatable {
+    case claude
+}
+
+enum IntegrationProvider: Equatable {
+    case claude
 }
 
 struct CLIParser {
@@ -62,6 +73,9 @@ private struct AdderallCommand: ParsableCommand {
             Begin.self,
             Heartbeat.self,
             End.self,
+            Hook.self,
+            Install.self,
+            Uninstall.self,
             Status.self
         ]
     )
@@ -123,6 +137,60 @@ private struct End: ParsableCommand, CLICommandConvertible {
 
     var command: CLICommand {
         .end(provider: session.provider, sessionID: session.sessionID)
+    }
+}
+
+private struct Hook: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Run from an agent hook.",
+        subcommands: [ClaudeHook.self]
+    )
+}
+
+private struct ClaudeHook: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "claude",
+        abstract: "Run from a Claude Code hook."
+    )
+
+    var command: CLICommand {
+        .hook(.claude)
+    }
+}
+
+private struct Install: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Install an agent integration.",
+        subcommands: [InstallClaude.self]
+    )
+}
+
+private struct InstallClaude: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "claude",
+        abstract: "Install the Claude Code integration."
+    )
+
+    var command: CLICommand {
+        .install(.claude)
+    }
+}
+
+private struct Uninstall: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Uninstall an agent integration.",
+        subcommands: [UninstallClaude.self]
+    )
+}
+
+private struct UninstallClaude: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "claude",
+        abstract: "Uninstall the Claude Code integration."
+    )
+
+    var command: CLICommand {
+        .uninstall(.claude)
     }
 }
 
