@@ -91,6 +91,19 @@ struct ClaudeHookSettingsInstaller {
         )
     }
 
+    func isInstalled() throws -> Bool {
+        guard FileManager.default.fileExists(atPath: settingsURL.path) else {
+            return false
+        }
+
+        let settings = try readSettings()
+        guard settings["hooks"] != nil else {
+            return false
+        }
+
+        return containsAdderallHandlers(in: try hooksObject(in: settings))
+    }
+
     private static let hookGroups = [
         ClaudeHookGroup(eventName: "UserPromptSubmit", matcher: nil),
         ClaudeHookGroup(eventName: "PreToolUse", matcher: "*"),
@@ -194,6 +207,26 @@ struct ClaudeHookSettingsInstaller {
             changedEvents: plan.changedEvents,
             didChange: true
         )
+    }
+
+    private func containsAdderallHandlers(in hooks: [String: Any]) -> Bool {
+        for value in hooks.values {
+            guard let groups = value as? [[String: Any]] else {
+                continue
+            }
+
+            for group in groups {
+                guard let handlers = group["hooks"] as? [[String: Any]] else {
+                    continue
+                }
+
+                if handlers.contains(where: isAdderallClaudeHandler) {
+                    return true
+                }
+            }
+        }
+
+        return false
     }
 
     private func removeAdderallHandlers(from hooks: inout [String: Any]) -> [String] {

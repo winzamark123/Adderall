@@ -18,6 +18,7 @@ enum HookProvider: Equatable {
 
 enum IntegrationProvider: Equatable {
     case claude
+    case pi
 }
 
 struct CLIParser {
@@ -161,7 +162,7 @@ private struct ClaudeHook: ParsableCommand, CLICommandConvertible {
 private struct Install: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Install an agent integration.",
-        subcommands: [InstallClaude.self]
+        subcommands: [InstallClaude.self, InstallPi.self]
     )
 }
 
@@ -176,10 +177,21 @@ private struct InstallClaude: ParsableCommand, CLICommandConvertible {
     }
 }
 
+private struct InstallPi: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "pi",
+        abstract: "Install the Pi integration."
+    )
+
+    var command: CLICommand {
+        .install(.pi)
+    }
+}
+
 private struct Uninstall: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Uninstall an agent integration.",
-        subcommands: [UninstallClaude.self]
+        subcommands: [UninstallClaude.self, UninstallPi.self]
     )
 }
 
@@ -191,6 +203,17 @@ private struct UninstallClaude: ParsableCommand, CLICommandConvertible {
 
     var command: CLICommand {
         .uninstall(.claude)
+    }
+}
+
+private struct UninstallPi: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "pi",
+        abstract: "Uninstall the Pi integration."
+    )
+
+    var command: CLICommand {
+        .uninstall(.pi)
     }
 }
 

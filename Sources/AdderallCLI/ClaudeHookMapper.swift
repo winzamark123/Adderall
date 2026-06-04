@@ -7,8 +7,19 @@ struct ClaudeHookMapper {
     private let toolTimeoutBufferSeconds: TimeInterval = 60
 
     func command(from data: Data) throws -> CLICommand? {
+        try mapping(from: data)?.command
+    }
+
+    func mapping(from data: Data) throws -> ClaudeHookMapping? {
         let input = try JSONDecoder().decode(ClaudeHookInput.self, from: data)
-        return command(for: input)
+        guard let command = command(for: input) else {
+            return nil
+        }
+
+        return ClaudeHookMapping(
+            command: command,
+            systemMessage: systemMessage(for: input, command: command)
+        )
     }
 
     private func command(for input: ClaudeHookInput) -> CLICommand? {
@@ -52,6 +63,23 @@ struct ClaudeHookMapper {
     private func leaseCommand(sessionID: String, ttlSeconds: TimeInterval = LeaseCommand.defaultTTLSeconds) -> LeaseCommand {
         LeaseCommand(provider: provider, sessionID: sessionID, ttlSeconds: ttlSeconds)
     }
+
+    private func systemMessage(for input: ClaudeHookInput, command: CLICommand) -> String? {
+        guard input.hookEventName == "Stop" else {
+            return nil
+        }
+
+        guard case .end = command else {
+            return nil
+        }
+
+        return "Released adderall (agent finished)."
+    }
+}
+
+struct ClaudeHookMapping: Equatable {
+    let command: CLICommand
+    let systemMessage: String?
 }
 
 private struct ClaudeHookInput: Decodable {

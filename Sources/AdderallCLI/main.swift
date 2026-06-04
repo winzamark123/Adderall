@@ -7,13 +7,13 @@ func run() throws {
     case .hook(.claude):
         runClaudeHook()
         return
-    case .install(.claude):
-        let result = try ClaudeIntegrationInstaller().install()
-        printClaudeInstallResult(result)
+    case .install(let provider):
+        let result = try IntegrationInstaller().install(provider)
+        printInstallResult(result)
         return
-    case .uninstall(.claude):
-        let result = try ClaudeIntegrationInstaller().uninstall()
-        printClaudeUninstallResult(result)
+    case .uninstall(let provider):
+        let result = try IntegrationInstaller().uninstall(provider)
+        printUninstallResult(result)
         return
     default:
         break
@@ -50,54 +50,101 @@ func runClaudeHook() {
             return
         }
 
-        guard let command = try ClaudeHookMapper().command(from: data) else {
+        guard let mapping = try ClaudeHookMapper().mapping(from: data) else {
             return
         }
 
-        let response = try ControllerClient(timeout: 1).send(command)
+        let response = try ControllerClient(timeout: 1).send(mapping.command)
         let requestSucceeded = response["success"] as? Bool ?? false
 
         if requestSucceeded == false {
             let message = response["error"] as? String ?? "Unknown controller error."
             logger?.log("Claude hook controller request failed: \(message)")
+            return
+        }
+
+        if let systemMessage = mapping.systemMessage {
+            try printClaudeHookSystemMessage(systemMessage)
         }
     } catch {
         logger?.log("Claude hook failed: \(error.localizedDescription)")
     }
 }
 
-func printClaudeInstallResult(_ result: ClaudeIntegrationInstallResult) {
-    print("Installed Adderall controller LaunchAgent: \(result.launchAgentResult.plistURL.path)")
-    print("Installed adderall: \(result.launchAgentResult.cliURL.path)")
-    print("Installed adderall-controller: \(result.launchAgentResult.controllerURL.path)")
+func printInstallResult(_ result: IntegrationInstallResult) {
+    switch result {
+    case .claude(let result):
+        printLaunchAgentInstallResult(result.launchAgentResult)
 
-    if let backupURL = result.hookResult.backupURL {
-        print("Backed up Claude settings: \(backupURL.path)")
+        if let backupURL = result.hookResult.backupURL {
+            print("Backed up Claude settings: \(backupURL.path)")
+        }
+
+        print("Installed Claude Code hooks in: \(result.hookResult.settingsURL.path)")
+        print("Next: restart Claude Code or run /hooks to verify.")
+        print("Undo: adderall uninstall claude")
+    case .pi(let result):
+        printLaunchAgentInstallResult(result.launchAgentResult)
+
+        if result.extensionResult.didChange {
+            print("Installed Pi extension: \(result.extensionResult.extensionURL.path)")
+        } else {
+            print("Pi extension was already installed: \(result.extensionResult.extensionURL.path)")
+        }
+
+        print("Next: restart Pi or run /reload to load the extension.")
+        print("Undo: adderall uninstall pi")
     }
-
-    print("Installed Claude Code hooks in: \(result.hookResult.settingsURL.path)")
-    print("Next: restart Claude Code or run /hooks to verify.")
-    print("Undo: adderall uninstall claude")
 }
 
-func printClaudeUninstallResult(_ result: ClaudeIntegrationUninstallResult) {
-    if let backupURL = result.hookResult.backupURL {
-        print("Backed up Claude settings: \(backupURL.path)")
+func printUninstallResult(_ result: IntegrationUninstallResult) {
+    switch result {
+    case .claude(let result):
+        if let backupURL = result.hookResult.backupURL {
+            print("Backed up Claude settings: \(backupURL.path)")
+        }
+
+        if result.hookResult.didChange {
+            print("Removed Adderall Claude Code hooks from: \(result.hookResult.settingsURL.path)")
+        } else if result.hookResult.settingsExisted {
+            print("Adderall Claude Code hooks were not installed in: \(result.hookResult.settingsURL.path)")
+        } else {
+            print("Claude settings file was not present: \(result.hookResult.settingsURL.path)")
+        }
+
+        printLaunchAgentUninstallResult(result.launchAgentResult)
+    case .pi(let result):
+        if result.extensionResult.didChange {
+            print("Removed Pi extension: \(result.extensionResult.extensionURL.path)")
+        } else {
+            print("Pi extension was not installed: \(result.extensionResult.extensionURL.path)")
+        }
+
+        printLaunchAgentUninstallResult(result.launchAgentResult)
+    }
+}
+
+func printLaunchAgentInstallResult(_ result: LaunchAgentInstallResult) {
+    print("Installed Adderall controller LaunchAgent: \(result.plistURL.path)")
+    print("Installed adderall: \(result.cliURL.path)")
+    print("Installed adderall-controller: \(result.controllerURL.path)")
+}
+
+func printLaunchAgentUninstallResult(_ result: LaunchAgentUninstallResult?) {
+    guard let result else {
+        print("Kept Adderall controller LaunchAgent because another integration is installed.")
+        return
     }
 
-    if result.hookResult.didChange {
-        print("Removed Adderall Claude Code hooks from: \(result.hookResult.settingsURL.path)")
-    } else if result.hookResult.settingsExisted {
-        print("Adderall Claude Code hooks were not installed in: \(result.hookResult.settingsURL.path)")
+    if result.removedPlist {
+        print("Removed Adderall controller LaunchAgent: \(result.plistURL.path)")
     } else {
-        print("Claude settings file was not present: \(result.hookResult.settingsURL.path)")
+        print("Adderall controller LaunchAgent was not installed: \(result.plistURL.path)")
     }
+}
 
-    if result.launchAgentResult.removedPlist {
-        print("Removed Adderall controller LaunchAgent: \(result.launchAgentResult.plistURL.path)")
-    } else {
-        print("Adderall controller LaunchAgent was not installed: \(result.launchAgentResult.plistURL.path)")
-    }
+func printClaudeHookSystemMessage(_ message: String) throws {
+    try printJSON(["systemMessage": message] as NSDictionary)
 }
 
 func printJSON(_ response: NSDictionary) throws {

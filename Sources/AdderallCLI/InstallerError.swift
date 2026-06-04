@@ -8,6 +8,7 @@ enum InstallerError: LocalizedError {
     case settingsMustBeObject(URL)
     case hooksMustBeObject(URL)
     case hookEventMustBeArray(eventName: String, settingsURL: URL)
+    case piExtensionConflict(URL)
 
     var errorDescription: String? {
         switch self {
@@ -25,6 +26,8 @@ enum InstallerError: LocalizedError {
             return "Claude settings hooks must be a JSON object: \(url.path)"
         case .hookEventMustBeArray(let eventName, let settingsURL):
             return "Claude settings hooks.\(eventName) must be an array: \(settingsURL.path)"
+        case .piExtensionConflict(let url):
+            return "Pi extension path is not owned by Adderall: \(url.path)"
         }
     }
 }

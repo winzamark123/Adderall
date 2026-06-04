@@ -46,10 +46,22 @@ final class CLIParserTests: XCTestCase {
         XCTAssertEqual(command, .install(.claude))
     }
 
+    func testInstallParsesPiProvider() throws {
+        let command = try CLIParser().parse(arguments: ["install", "pi"])
+
+        XCTAssertEqual(command, .install(.pi))
+    }
+
     func testUninstallParsesClaudeProvider() throws {
         let command = try CLIParser().parse(arguments: ["uninstall", "claude"])
 
         XCTAssertEqual(command, .uninstall(.claude))
+    }
+
+    func testUninstallParsesPiProvider() throws {
+        let command = try CLIParser().parse(arguments: ["uninstall", "pi"])
+
+        XCTAssertEqual(command, .uninstall(.pi))
     }
 
     func testStatusParsesJSONFlag() throws {

@@ -5,10 +5,12 @@ Read this file before using individual memories. The memory files are mostly REA
 ## Current Direction
 
 - Current product direction lives in `README.md`.
-- The latest snapshot, `2026-05-30_v16.md`, is byte-for-byte identical to the current `README.md` as of May 30, 2026.
-- The current proof is controller-first normal-awake behavior plus Claude Code CLI installation, not a polished menu bar app and not privileged closed-lid behavior.
-- Runtime shape: agent hook -> `adderall` CLI -> XPC -> user LaunchAgent/controller -> `IOPMAssertion`.
+- The latest snapshot, `2026-06-04_v18.md`, is byte-for-byte identical to the current `README.md` as of June 4, 2026.
+- The current proof is controller-first normal-awake behavior plus Claude Code and Pi CLI installation, not a polished menu bar app and not privileged closed-lid behavior.
+- Runtime shape: agent hook/extension -> `adderall` CLI -> XPC -> user LaunchAgent/controller -> `IOPMAssertion`.
 - `adderall install claude` installs the user LaunchAgent/controller and Claude Code hooks; `adderall uninstall claude` removes those integration points.
+- `adderall install pi` installs the user LaunchAgent/controller and an Adderall-owned Pi extension; `adderall uninstall pi` removes that extension.
+- Claude and Pi are implemented integrations. Codex is the next planned integration pass.
 - The CLI is a fast, non-interactive bridge during hook execution. It does not own power state, mutate the lease store directly, or hold power assertions.
 - The controller owns live lease state, lease expiry, recovery snapshots, and normal awake assertions.
 - The lease store is for recovery, diagnostics, and `status --json`; it is not IPC and not a command bus.
@@ -35,7 +37,9 @@ Read this file before using individual memories. The memory files are mostly REA
 - `2026-05-30_v13.md`: records the first Claude Code hook entrypoint and development script installer direction.
 - `2026-05-30_v14.md`: records the script-based Claude hook installer before it was promoted into the CLI.
 - `2026-05-30_v15.md`: snapshot taken before replacing development scripts with product CLI install/uninstall commands.
-- `2026-05-30_v16.md`: current README snapshot; `adderall install claude` / `adderall uninstall claude` are the user-facing integration commands.
+- `2026-05-30_v16.md`: README snapshot where `adderall install claude` / `adderall uninstall claude` are the user-facing integration commands.
+- `2026-06-04_v17.md`: adds native Pi integration through `adderall install pi` / `adderall uninstall pi` and documents shared LaunchAgent uninstall behavior.
+- `2026-06-04_v18.md`: current README snapshot; cleans up current state, documents Claude/Pi user-visible release/status behavior, and marks Codex as the next planned integration pass.
 
 ## Current Decisions To Preserve
 
@@ -45,8 +49,8 @@ Read this file before using individual memories. The memory files are mostly REA
 - Use `swift-service-lifecycle` only to start the XPC listener, wait for graceful shutdown signals, and invalidate the listener on exit.
 - Keep lease state, snapshots, timers, and power assertions as explicit controller-owned logic.
 - Use scheduled expiry timers, not polling loops, for lease expiration.
-- Treat hooks as best-effort signals and TTL expiry as the safety net.
-- Keep Claude setup in explicit user-facing commands, not loose development scripts.
+- Treat hooks and Pi extension events as best-effort signals and TTL expiry as the safety net.
+- Keep Claude, Pi, and future Codex setup in explicit user-facing commands, not loose development scripts.
 - Do not treat "Codex session exists" as "Codex is actively working"; use turn and tool events.
 - Prefer fail-closed behavior that restores normal sleep state.
 - Never call `sudo` from hooks.

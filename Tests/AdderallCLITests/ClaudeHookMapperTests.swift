@@ -56,6 +56,20 @@ final class ClaudeHookMapperTests: XCTestCase {
         XCTAssertEqual(command, .end(provider: "claude", sessionID: "session-1"))
     }
 
+    func testStopEndShowsReleaseMessage() throws {
+        let mapping = try mapWithMetadata("""
+        {
+          "session_id": "session-1",
+          "hook_event_name": "Stop",
+          "background_tasks": [],
+          "session_crons": []
+        }
+        """)
+
+        XCTAssertEqual(mapping?.command, .end(provider: "claude", sessionID: "session-1"))
+        XCTAssertEqual(mapping?.systemMessage, "Released adderall (agent finished).")
+    }
+
     func testStopRefreshesLeaseWhenBackgroundWorkRemains() throws {
         let command = try map("""
         {
@@ -86,6 +100,18 @@ final class ClaudeHookMapperTests: XCTestCase {
         XCTAssertEqual(command, .heartbeat(LeaseCommand(provider: "claude", sessionID: "session-1", ttlSeconds: 60)))
     }
 
+    func testStopHeartbeatDoesNotShowReleaseMessage() throws {
+        let mapping = try mapWithMetadata("""
+        {
+          "session_id": "session-1",
+          "hook_event_name": "Stop"
+        }
+        """)
+
+        XCTAssertEqual(mapping?.command, .heartbeat(LeaseCommand(provider: "claude", sessionID: "session-1", ttlSeconds: 60)))
+        XCTAssertNil(mapping?.systemMessage)
+    }
+
     func testSessionEndEndsLease() throws {
         let command = try map("""
         {
@@ -96,6 +122,19 @@ final class ClaudeHookMapperTests: XCTestCase {
         """)
 
         XCTAssertEqual(command, .end(provider: "claude", sessionID: "session-1"))
+    }
+
+    func testSessionEndDoesNotShowReleaseMessage() throws {
+        let mapping = try mapWithMetadata("""
+        {
+          "session_id": "session-1",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        }
+        """)
+
+        XCTAssertEqual(mapping?.command, .end(provider: "claude", sessionID: "session-1"))
+        XCTAssertNil(mapping?.systemMessage)
     }
 
     func testUnknownEventIsIgnored() throws {
@@ -112,5 +151,10 @@ final class ClaudeHookMapperTests: XCTestCase {
     private func map(_ json: String) throws -> CLICommand? {
         let data = try XCTUnwrap(json.data(using: .utf8))
         return try ClaudeHookMapper().command(from: data)
+    }
+
+    private func mapWithMetadata(_ json: String) throws -> ClaudeHookMapping? {
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        return try ClaudeHookMapper().mapping(from: data)
     }
 }
