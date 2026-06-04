@@ -6,10 +6,6 @@ struct ClaudeHookMapper {
     private let staleStopTTLSeconds: TimeInterval = 60
     private let toolTimeoutBufferSeconds: TimeInterval = 60
 
-    func command(from data: Data) throws -> CLICommand? {
-        try mapping(from: data)?.command
-    }
-
     func mapping(from data: Data) throws -> ClaudeHookMapping? {
         let input = try JSONDecoder().decode(ClaudeHookInput.self, from: data)
         guard let command = command(for: input) else {

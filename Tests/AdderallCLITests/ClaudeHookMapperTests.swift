@@ -149,8 +149,7 @@ final class ClaudeHookMapperTests: XCTestCase {
     }
 
     private func map(_ json: String) throws -> CLICommand? {
-        let data = try XCTUnwrap(json.data(using: .utf8))
-        return try ClaudeHookMapper().command(from: data)
+        try mapWithMetadata(json)?.command
     }
 
     private func mapWithMetadata(_ json: String) throws -> ClaudeHookMapping? {

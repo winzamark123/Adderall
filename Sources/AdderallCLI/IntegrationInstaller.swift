@@ -118,7 +118,7 @@ struct IntegrationInstaller {
     }
 
     private func hasInstalledIntegration(excluding provider: IntegrationProvider? = nil) -> Bool {
-        for candidate in [IntegrationProvider.claude, .pi] where candidate != provider {
+        for candidate in IntegrationProvider.allCases where candidate != provider {
             do {
                 if try isInstalled(candidate) {
                     return true

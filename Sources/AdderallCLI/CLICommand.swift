@@ -16,7 +16,7 @@ enum HookProvider: Equatable {
     case claude
 }
 
-enum IntegrationProvider: Equatable {
+enum IntegrationProvider: Equatable, CaseIterable {
     case claude
     case pi
 }

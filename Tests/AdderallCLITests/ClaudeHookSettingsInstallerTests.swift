@@ -174,12 +174,6 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: settingsURL.path))
     }
 
-    private func makeTemporaryDirectory() throws -> URL {
-        let directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        return directoryURL
-    }
 
     private func readJSON(from url: URL) throws -> [String: Any] {
         let data = try Data(contentsOf: url)
