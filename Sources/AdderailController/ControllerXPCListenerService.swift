@@ -15,7 +15,7 @@ actor ControllerXPCListenerService: Service {
 
     func run() async throws {
         listener.resume()
-        print("adderall-controller listening on \(machServiceName)")
+        print("adderail-controller listening on \(machServiceName)")
 
         defer {
             listener.invalidate()

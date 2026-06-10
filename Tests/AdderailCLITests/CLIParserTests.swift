@@ -1,5 +1,5 @@
-import AdderallShared
-@testable import AdderallCLI
+import AdderailShared
+@testable import AdderailCLI
 import XCTest
 
 final class CLIParserTests: XCTestCase {
@@ -40,10 +40,22 @@ final class CLIParserTests: XCTestCase {
         XCTAssertEqual(command, .hook(.claude))
     }
 
+    func testHookParsesCodexProvider() throws {
+        let command = try CLIParser().parse(arguments: ["hook", "codex"])
+
+        XCTAssertEqual(command, .hook(.codex))
+    }
+
     func testInstallParsesClaudeProvider() throws {
         let command = try CLIParser().parse(arguments: ["install", "claude"])
 
         XCTAssertEqual(command, .install(.claude))
+    }
+
+    func testInstallParsesCodexProvider() throws {
+        let command = try CLIParser().parse(arguments: ["install", "codex"])
+
+        XCTAssertEqual(command, .install(.codex))
     }
 
     func testInstallParsesPiProvider() throws {
@@ -56,6 +68,12 @@ final class CLIParserTests: XCTestCase {
         let command = try CLIParser().parse(arguments: ["uninstall", "claude"])
 
         XCTAssertEqual(command, .uninstall(.claude))
+    }
+
+    func testUninstallParsesCodexProvider() throws {
+        let command = try CLIParser().parse(arguments: ["uninstall", "codex"])
+
+        XCTAssertEqual(command, .uninstall(.codex))
     }
 
     func testUninstallParsesPiProvider() throws {
@@ -93,7 +111,7 @@ final class CLIParserTests: XCTestCase {
         XCTAssertThrowsError(try CLIParser().parse(arguments: ["--help"])) { error in
             let parsingError = error as? CLIParsingError
             XCTAssertEqual(parsingError?.exitCode, 0)
-            XCTAssertTrue(parsingError?.message.contains("USAGE: adderall") == true)
+            XCTAssertTrue(parsingError?.message.contains("USAGE: adderail") == true)
         }
     }
 }

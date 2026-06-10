@@ -1,4 +1,4 @@
-import AdderallShared
+import AdderailShared
 import Foundation
 
 struct LeaseManager: Sendable {

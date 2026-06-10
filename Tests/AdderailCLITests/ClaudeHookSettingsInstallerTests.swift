@@ -1,11 +1,11 @@
-@testable import AdderallCLI
+@testable import AdderailCLI
 import XCTest
 
 final class ClaudeHookSettingsInstallerTests: XCTestCase {
     func testInstallPreservesExistingHooksAndAddsClaudeHooks() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
 
         try writeJSON(
             [
@@ -23,7 +23,7 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
             to: settingsURL
         )
 
-        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL).install()
+        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL).install()
         let settings = try readJSON(from: settingsURL)
         let hooks = try XCTUnwrap(settings["hooks"] as? [String: Any])
 
@@ -37,31 +37,31 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
             "StopFailure",
             "SessionEnd"
         ])
-        XCTAssertEqual(adderallCommand(in: hooks, eventName: "UserPromptSubmit"), adderallURL.path)
-        XCTAssertEqual(adderallArgs(in: hooks, eventName: "UserPromptSubmit"), ["hook", "claude"])
+        XCTAssertEqual(adderailCommand(in: hooks, eventName: "UserPromptSubmit"), adderailURL.path)
+        XCTAssertEqual(adderailArgs(in: hooks, eventName: "UserPromptSubmit"), ["hook", "claude"])
         XCTAssertEqual(existingNotificationCommand(in: hooks), "echo hi")
     }
 
     func testInstallIsIdempotent() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
-        let installer = ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL)
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
+        let installer = ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL)
 
         _ = try installer.install()
         _ = try installer.install()
 
         let settings = try readJSON(from: settingsURL)
         let hooks = try XCTUnwrap(settings["hooks"] as? [String: Any])
-        XCTAssertEqual(adderallHandlerCount(in: hooks, eventName: "UserPromptSubmit"), 1)
-        XCTAssertEqual(adderallHandlerCount(in: hooks, eventName: "PreToolUse"), 1)
+        XCTAssertEqual(adderailHandlerCount(in: hooks, eventName: "UserPromptSubmit"), 1)
+        XCTAssertEqual(adderailHandlerCount(in: hooks, eventName: "PreToolUse"), 1)
     }
 
-    func testUninstallRemovesOnlyAdderallHooks() throws {
+    func testUninstallRemovesOnlyAdderailHooks() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
-        let installer = ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL)
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
+        let installer = ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL)
 
         _ = try installer.install()
         var settings = try readJSON(from: settingsURL)
@@ -86,14 +86,14 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
         XCTAssertEqual(existingNotificationCommand(in: uninstalledHooks), "echo hi")
     }
 
-    func testUninstallDoesNotRewriteEmptyHooksWhenAdderallHooksAreAbsent() throws {
+    func testUninstallDoesNotRewriteEmptyHooksWhenAdderailHooksAreAbsent() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
         let originalData = Data(#"{"hooks":{}}"#.utf8)
         try originalData.write(to: settingsURL)
 
-        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL).uninstall()
+        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL).uninstall()
         let currentData = try Data(contentsOf: settingsURL)
 
         XCTAssertNil(result.backupURL)
@@ -103,10 +103,10 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
         XCTAssertEqual(currentData, originalData)
     }
 
-    func testUninstallDoesNotRewriteExistingHooksWhenAdderallHooksAreAbsent() throws {
+    func testUninstallDoesNotRewriteExistingHooksWhenAdderailHooksAreAbsent() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
         let originalData = Data("""
         {
           "hooks": {
@@ -125,7 +125,7 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
         """.utf8)
         try originalData.write(to: settingsURL)
 
-        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL).uninstall()
+        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL).uninstall()
         let currentData = try Data(contentsOf: settingsURL)
 
         XCTAssertNil(result.backupURL)
@@ -135,11 +135,11 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
         XCTAssertEqual(currentData, originalData)
     }
 
-    func testUninstallPreservesHooksObjectWhenOnlyAdderallHooksAreRemoved() throws {
+    func testUninstallPreservesHooksObjectWhenOnlyAdderailHooksAreRemoved() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
-        let installer = ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL)
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
+        let installer = ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL)
 
         _ = try installer.install()
         let result = try installer.uninstall()
@@ -154,19 +154,19 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
     func testPrepareInstallRejectsInvalidSettingsWithoutBackup() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
         try Data("[".utf8).write(to: settingsURL)
 
-        XCTAssertThrowsError(try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL).prepareInstall())
+        XCTAssertThrowsError(try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL).prepareInstall())
         XCTAssertEqual(try backupURLs(for: settingsURL), [])
     }
 
     func testUninstallAllowsMissingSettingsFile() throws {
         let tempDirectoryURL = try makeTemporaryDirectory()
         let settingsURL = tempDirectoryURL.appendingPathComponent("missing-settings.json")
-        let adderallURL = tempDirectoryURL.appendingPathComponent("bin/adderall")
+        let adderailURL = tempDirectoryURL.appendingPathComponent("bin/adderail")
 
-        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderallURL: adderallURL).uninstall()
+        let result = try ClaudeHookSettingsInstaller(settingsURL: settingsURL, adderailURL: adderailURL).uninstall()
 
         XCTAssertNil(result.backupURL)
         XCTAssertFalse(result.settingsExisted)
@@ -193,31 +193,31 @@ final class ClaudeHookSettingsInstallerTests: XCTestCase {
             at: directoryURL,
             includingPropertiesForKeys: nil
         ).filter { url in
-            url.lastPathComponent.hasPrefix("\(settingsURL.lastPathComponent).adderall-backup-")
+            url.lastPathComponent.hasPrefix("\(settingsURL.lastPathComponent).adderail-backup-")
         }
     }
 
-    private func adderallCommand(in hooks: [String: Any], eventName: String) -> String? {
-        adderallHandler(in: hooks, eventName: eventName)?["command"] as? String
+    private func adderailCommand(in hooks: [String: Any], eventName: String) -> String? {
+        adderailHandler(in: hooks, eventName: eventName)?["command"] as? String
     }
 
-    private func adderallArgs(in hooks: [String: Any], eventName: String) -> [String]? {
-        adderallHandler(in: hooks, eventName: eventName)?["args"] as? [String]
+    private func adderailArgs(in hooks: [String: Any], eventName: String) -> [String]? {
+        adderailHandler(in: hooks, eventName: eventName)?["args"] as? [String]
     }
 
-    private func adderallHandlerCount(in hooks: [String: Any], eventName: String) -> Int {
+    private func adderailHandlerCount(in hooks: [String: Any], eventName: String) -> Int {
         handlers(in: hooks, eventName: eventName).filter { handler in
             handler["type"] as? String == "command"
                 && handler["args"] as? [String] == ["hook", "claude"]
-                && URL(fileURLWithPath: handler["command"] as? String ?? "").lastPathComponent == "adderall"
+                && URL(fileURLWithPath: handler["command"] as? String ?? "").lastPathComponent == "adderail"
         }.count
     }
 
-    private func adderallHandler(in hooks: [String: Any], eventName: String) -> [String: Any]? {
+    private func adderailHandler(in hooks: [String: Any], eventName: String) -> [String: Any]? {
         handlers(in: hooks, eventName: eventName).first { handler in
             handler["type"] as? String == "command"
                 && handler["args"] as? [String] == ["hook", "claude"]
-                && URL(fileURLWithPath: handler["command"] as? String ?? "").lastPathComponent == "adderall"
+                && URL(fileURLWithPath: handler["command"] as? String ?? "").lastPathComponent == "adderail"
         }
     }
 

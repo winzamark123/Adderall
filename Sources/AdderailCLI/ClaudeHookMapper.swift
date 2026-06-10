@@ -1,4 +1,4 @@
-import AdderallShared
+import AdderailShared
 import Foundation
 
 struct ClaudeHookMapper {
@@ -69,7 +69,7 @@ struct ClaudeHookMapper {
             return nil
         }
 
-        return "Released adderall (agent finished)."
+        return "Released adderail (agent finished)."
     }
 }
 

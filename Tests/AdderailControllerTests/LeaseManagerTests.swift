@@ -1,5 +1,5 @@
-import AdderallShared
-@testable import AdderallController
+import AdderailShared
+@testable import AdderailController
 import XCTest
 
 final class LeaseManagerTests: XCTestCase {

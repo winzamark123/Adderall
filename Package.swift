@@ -3,14 +3,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "Adderall",
+    name: "Adderail",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "adderall", targets: ["AdderallCLI"]),
-        .executable(name: "adderall-controller", targets: ["AdderallController"]),
-        .library(name: "AdderallShared", targets: ["AdderallShared"])
+        .executable(name: "adderail", targets: ["AdderailCLI"]),
+        .executable(name: "adderail-controller", targets: ["AdderailController"]),
+        .library(name: "AdderailShared", targets: ["AdderailShared"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.7.1")),
@@ -18,18 +18,18 @@ let package = Package(
         .package(url: "https://github.com/swift-server/swift-service-lifecycle.git", .upToNextMinor(from: "2.6.1"))
     ],
     targets: [
-        .target(name: "AdderallShared"),
+        .target(name: "AdderailShared"),
         .executableTarget(
-            name: "AdderallCLI",
+            name: "AdderailCLI",
             dependencies: [
-                "AdderallShared",
+                "AdderailShared",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
         .executableTarget(
-            name: "AdderallController",
+            name: "AdderailController",
             dependencies: [
-                "AdderallShared",
+                "AdderailShared",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle")
@@ -39,12 +39,12 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "AdderallControllerTests",
-            dependencies: ["AdderallController"]
+            name: "AdderailControllerTests",
+            dependencies: ["AdderailController"]
         ),
         .testTarget(
-            name: "AdderallCLITests",
-            dependencies: ["AdderallCLI"]
+            name: "AdderailCLITests",
+            dependencies: ["AdderailCLI"]
         )
     ]
 )

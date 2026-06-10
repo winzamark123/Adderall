@@ -1,5 +1,5 @@
-import AdderallShared
-@testable import AdderallCLI
+import AdderailShared
+@testable import AdderailCLI
 import XCTest
 
 final class ClaudeHookMapperTests: XCTestCase {
@@ -67,7 +67,7 @@ final class ClaudeHookMapperTests: XCTestCase {
         """)
 
         XCTAssertEqual(mapping?.command, .end(provider: "claude", sessionID: "session-1"))
-        XCTAssertEqual(mapping?.systemMessage, "Released adderall (agent finished).")
+        XCTAssertEqual(mapping?.systemMessage, "Released adderail (agent finished).")
     }
 
     func testStopRefreshesLeaseWhenBackgroundWorkRemains() throws {

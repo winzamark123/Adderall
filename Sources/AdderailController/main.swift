@@ -1,4 +1,4 @@
-import AdderallShared
+import AdderailShared
 import ArgumentParser
 import Foundation
 import Logging
@@ -26,7 +26,7 @@ func runController() async throws {
     let serviceGroup = ServiceGroup(
         services: [listenerService],
         gracefulShutdownSignals: [.sigterm, .sigint],
-        logger: Logger(label: "com.example.adderall.controller")
+        logger: Logger(label: "com.adderail.controller")
     )
 
     try await serviceGroup.run()
@@ -66,15 +66,15 @@ struct ControllerParsingError: Error {
 
 struct ControllerOptions: ParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "adderall-controller",
-        abstract: "Run the Adderall controller service."
+        commandName: "adderail-controller",
+        abstract: "Run the Adderail controller service."
     )
 
     @Argument(help: "Controller command.")
     var command: ControllerCommand = .run
 
     @Option(name: .customLong("mach-service"), help: "Mach service name.")
-    var machServiceName = adderallControllerMachServiceName
+    var machServiceName = adderailControllerMachServiceName
 }
 
 enum ControllerCommand: String, ExpressibleByArgument {

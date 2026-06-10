@@ -7,6 +7,9 @@ func run() throws {
     case .hook(.claude):
         runClaudeHook()
         return
+    case .hook(.codex):
+        runCodexHook()
+        return
     case .install(let provider):
         let result = try IntegrationInstaller().install(provider)
         printInstallResult(result)
@@ -71,6 +74,34 @@ func runClaudeHook() {
     }
 }
 
+func runCodexHook() {
+    let logger = HookLogger.userDefault(provider: "codex")
+
+    do {
+        let data = FileHandle.standardInput.readDataToEndOfFile()
+
+        guard data.isEmpty == false else {
+            logger?.log("Codex hook received empty stdin.")
+            return
+        }
+
+        guard let mapping = try CodexHookMapper().mapping(from: data) else {
+            return
+        }
+
+        let response = try ControllerClient(timeout: 1).send(mapping.command)
+        let requestSucceeded = response["success"] as? Bool ?? false
+
+        if requestSucceeded == false {
+            let message = response["error"] as? String ?? "Unknown controller error."
+            logger?.log("Codex hook controller request failed: \(message)")
+            return
+        }
+    } catch {
+        logger?.log("Codex hook failed: \(error.localizedDescription)")
+    }
+}
+
 func printInstallResult(_ result: IntegrationInstallResult) {
     switch result {
     case .claude(let result):
@@ -82,7 +113,17 @@ func printInstallResult(_ result: IntegrationInstallResult) {
 
         print("Installed Claude Code hooks in: \(result.hookResult.settingsURL.path)")
         print("Next: restart Claude Code or run /hooks to verify.")
-        print("Undo: adderall uninstall claude")
+        print("Undo: adderail uninstall claude")
+    case .codex(let result):
+        printLaunchAgentInstallResult(result.launchAgentResult)
+
+        if let backupURL = result.hookResult.backupURL {
+            print("Backed up Codex hooks: \(backupURL.path)")
+        }
+
+        print("Installed Codex hooks in: \(result.hookResult.hooksURL.path)")
+        print("Next: restart Codex, run /hooks, and trust the Adderail hooks.")
+        print("Undo: adderail uninstall codex")
     case .pi(let result):
         printLaunchAgentInstallResult(result.launchAgentResult)
 
@@ -93,7 +134,7 @@ func printInstallResult(_ result: IntegrationInstallResult) {
         }
 
         print("Next: restart Pi or run /reload to load the extension.")
-        print("Undo: adderall uninstall pi")
+        print("Undo: adderail uninstall pi")
     }
 }
 
@@ -105,11 +146,25 @@ func printUninstallResult(_ result: IntegrationUninstallResult) {
         }
 
         if result.hookResult.didChange {
-            print("Removed Adderall Claude Code hooks from: \(result.hookResult.settingsURL.path)")
+            print("Removed Adderail Claude Code hooks from: \(result.hookResult.settingsURL.path)")
         } else if result.hookResult.settingsExisted {
-            print("Adderall Claude Code hooks were not installed in: \(result.hookResult.settingsURL.path)")
+            print("Adderail Claude Code hooks were not installed in: \(result.hookResult.settingsURL.path)")
         } else {
             print("Claude settings file was not present: \(result.hookResult.settingsURL.path)")
+        }
+
+        printLaunchAgentUninstallResult(result.launchAgentResult)
+    case .codex(let result):
+        if let backupURL = result.hookResult.backupURL {
+            print("Backed up Codex hooks: \(backupURL.path)")
+        }
+
+        if result.hookResult.didChange {
+            print("Removed Adderail Codex hooks from: \(result.hookResult.hooksURL.path)")
+        } else if result.hookResult.hooksFileExisted {
+            print("Adderail Codex hooks were not installed in: \(result.hookResult.hooksURL.path)")
+        } else {
+            print("Codex hooks file was not present: \(result.hookResult.hooksURL.path)")
         }
 
         printLaunchAgentUninstallResult(result.launchAgentResult)
@@ -125,21 +180,21 @@ func printUninstallResult(_ result: IntegrationUninstallResult) {
 }
 
 func printLaunchAgentInstallResult(_ result: LaunchAgentInstallResult) {
-    print("Installed Adderall controller LaunchAgent: \(result.plistURL.path)")
-    print("Installed adderall: \(result.cliURL.path)")
-    print("Installed adderall-controller: \(result.controllerURL.path)")
+    print("Installed Adderail controller LaunchAgent: \(result.plistURL.path)")
+    print("Installed adderail: \(result.cliURL.path)")
+    print("Installed adderail-controller: \(result.controllerURL.path)")
 }
 
 func printLaunchAgentUninstallResult(_ result: LaunchAgentUninstallResult?) {
     guard let result else {
-        print("Kept Adderall controller LaunchAgent because another integration is installed.")
+        print("Kept Adderail controller LaunchAgent because another integration is installed.")
         return
     }
 
     if result.removedPlist {
-        print("Removed Adderall controller LaunchAgent: \(result.plistURL.path)")
+        print("Removed Adderail controller LaunchAgent: \(result.plistURL.path)")
     } else {
-        print("Adderall controller LaunchAgent was not installed: \(result.plistURL.path)")
+        print("Adderail controller LaunchAgent was not installed: \(result.plistURL.path)")
     }
 }
 

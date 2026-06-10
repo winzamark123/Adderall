@@ -1,12 +1,12 @@
-import AdderallShared
+import AdderailShared
 import Darwin
 import Foundation
 
 struct LaunchAgentInstaller {
     private let fileManager: FileManager
-    private let label = "com.example.adderall.controller"
-    private let controllerExecutableName = "adderall-controller"
-    private let cliExecutableName = "adderall"
+    private let label = "com.adderail.controller"
+    private let controllerExecutableName = "adderail-controller"
+    private let cliExecutableName = "adderail"
 
     init(fileManager: FileManager = .default) {
         self.fileManager = fileManager
@@ -14,7 +14,7 @@ struct LaunchAgentInstaller {
 
     var installBinURL: URL {
         applicationSupportURL
-            .appendingPathComponent("Adderall", isDirectory: true)
+            .appendingPathComponent("Adderail", isDirectory: true)
             .appendingPathComponent("bin", isDirectory: true)
     }
 
@@ -111,7 +111,7 @@ struct LaunchAgentInstaller {
         let plist: [String: Any] = [
             "Label": label,
             "ProgramArguments": [controllerURL.path, "run"],
-            "MachServices": [adderallControllerMachServiceName: true],
+            "MachServices": [adderailControllerMachServiceName: true],
             "RunAtLoad": true
         ]
 

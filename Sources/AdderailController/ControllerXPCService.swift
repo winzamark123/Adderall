@@ -1,7 +1,7 @@
-import AdderallShared
+import AdderailShared
 import Foundation
 
-final class ControllerXPCService: NSObject, AdderallControllerXPCProtocol {
+final class ControllerXPCService: NSObject, AdderailControllerXPCProtocol {
     private let state: ControllerState
 
     init(state: ControllerState) {

@@ -2,11 +2,11 @@ import Foundation
 
 struct ClaudeHookSettingsInstaller {
     let settingsURL: URL
-    let adderallURL: URL
+    let adderailURL: URL
 
     static func defaultSettingsURL() -> URL {
         let environment = ProcessInfo.processInfo.environment
-        if let settingsPath = environment["ADDERALL_CLAUDE_SETTINGS_PATH"], settingsPath.isEmpty == false {
+        if let settingsPath = environment["ADDERAIL_CLAUDE_SETTINGS_PATH"], settingsPath.isEmpty == false {
             return URL(fileURLWithPath: NSString(string: settingsPath).expandingTildeInPath)
         }
 
@@ -20,11 +20,11 @@ struct ClaudeHookSettingsInstaller {
         var settings = try readSettings()
         var hooks = try hooksObject(in: settings)
 
-        _ = removeAdderallHandlers(from: &hooks)
+        _ = removeAdderailHandlers(from: &hooks)
 
         for group in Self.hookGroups {
             var groups = try eventGroups(for: group.eventName, in: hooks)
-            groups.append(group.dictionary(adderallURL: adderallURL))
+            groups.append(group.dictionary(adderailURL: adderailURL))
             hooks[group.eventName] = groups
         }
 
@@ -68,7 +68,7 @@ struct ClaudeHookSettingsInstaller {
         }
 
         var hooks = try hooksObject(in: settings)
-        let changedEvents = removeAdderallHandlers(from: &hooks)
+        let changedEvents = removeAdderailHandlers(from: &hooks)
 
         guard changedEvents.isEmpty == false else {
             return ClaudeHookSettingsChange(
@@ -101,7 +101,7 @@ struct ClaudeHookSettingsInstaller {
             return false
         }
 
-        return containsAdderallHandlers(in: try hooksObject(in: settings))
+        return containsAdderailHandlers(in: try hooksObject(in: settings))
     }
 
     private static let hookGroups = [
@@ -126,7 +126,7 @@ struct ClaudeHookSettingsInstaller {
 
     private func uniqueBackupURL() -> URL {
         let timestamp = Self.backupTimestampFormatter.string(from: Date())
-        let basePath = "\(settingsURL.path).adderall-backup-\(timestamp)"
+        let basePath = "\(settingsURL.path).adderail-backup-\(timestamp)"
         var candidateURL = URL(fileURLWithPath: basePath)
 
         var suffix = 2
@@ -209,7 +209,7 @@ struct ClaudeHookSettingsInstaller {
         )
     }
 
-    private func containsAdderallHandlers(in hooks: [String: Any]) -> Bool {
+    private func containsAdderailHandlers(in hooks: [String: Any]) -> Bool {
         for value in hooks.values {
             guard let groups = value as? [[String: Any]] else {
                 continue
@@ -220,7 +220,7 @@ struct ClaudeHookSettingsInstaller {
                     continue
                 }
 
-                if handlers.contains(where: isAdderallClaudeHandler) {
+                if handlers.contains(where: isAdderailClaudeHandler) {
                     return true
                 }
             }
@@ -229,7 +229,7 @@ struct ClaudeHookSettingsInstaller {
         return false
     }
 
-    private func removeAdderallHandlers(from hooks: inout [String: Any]) -> [String] {
+    private func removeAdderailHandlers(from hooks: inout [String: Any]) -> [String] {
         var changedEvents: [String] = []
 
         for eventName in Array(hooks.keys) {
@@ -242,7 +242,7 @@ struct ClaudeHookSettingsInstaller {
                     return group
                 }
 
-                let nextHandlers = handlers.filter { isAdderallClaudeHandler($0) == false }
+                let nextHandlers = handlers.filter { isAdderailClaudeHandler($0) == false }
                 if nextHandlers.isEmpty {
                     return nil
                 }
@@ -268,7 +268,7 @@ struct ClaudeHookSettingsInstaller {
         return changedEvents
     }
 
-    private func isAdderallClaudeHandler(_ handler: [String: Any]) -> Bool {
+    private func isAdderailClaudeHandler(_ handler: [String: Any]) -> Bool {
         guard handler["type"] as? String == "command" else {
             return false
         }
@@ -278,7 +278,7 @@ struct ClaudeHookSettingsInstaller {
         }
 
         let command = handler["command"] as? String ?? ""
-        return URL(fileURLWithPath: command).lastPathComponent == "adderall"
+        return URL(fileURLWithPath: command).lastPathComponent == "adderail"
     }
 
     private func groupsContainChangedHandlers(_ oldGroups: [[String: Any]], _ newGroups: [[String: Any]]) -> Bool {
@@ -308,12 +308,12 @@ private struct ClaudeHookGroup {
     let eventName: String
     let matcher: String?
 
-    func dictionary(adderallURL: URL) -> [String: Any] {
+    func dictionary(adderailURL: URL) -> [String: Any] {
         var group: [String: Any] = [
             "hooks": [
                 [
                     "type": "command",
-                    "command": adderallURL.path,
+                    "command": adderailURL.path,
                     "args": ["hook", "claude"],
                     "timeout": 2
                 ]

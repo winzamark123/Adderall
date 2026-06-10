@@ -3,15 +3,18 @@ import Foundation
 struct IntegrationInstaller {
     private let launchAgentInstaller: LaunchAgentInstaller
     private let claudeSettingsURL: URL
+    private let codexHooksURL: URL
     private let piExtensionURL: URL
 
     init(
         launchAgentInstaller: LaunchAgentInstaller = LaunchAgentInstaller(),
         claudeSettingsURL: URL = ClaudeHookSettingsInstaller.defaultSettingsURL(),
+        codexHooksURL: URL = CodexHookSettingsInstaller.defaultHooksURL(),
         piExtensionURL: URL = PiExtensionInstaller.defaultExtensionURL()
     ) {
         self.launchAgentInstaller = launchAgentInstaller
         self.claudeSettingsURL = claudeSettingsURL
+        self.codexHooksURL = codexHooksURL
         self.piExtensionURL = piExtensionURL
     }
 
@@ -19,6 +22,8 @@ struct IntegrationInstaller {
         switch provider {
         case .claude:
             return .claude(try installClaude())
+        case .codex:
+            return .codex(try installCodex())
         case .pi:
             return .pi(try installPi())
         }
@@ -28,6 +33,8 @@ struct IntegrationInstaller {
         switch provider {
         case .claude:
             return .claude(try uninstallClaude())
+        case .codex:
+            return .codex(try uninstallCodex())
         case .pi:
             return .pi(try uninstallPi())
         }
@@ -36,7 +43,7 @@ struct IntegrationInstaller {
     private func installClaude() throws -> ClaudeIntegrationInstallResult {
         let hookInstaller = ClaudeHookSettingsInstaller(
             settingsURL: claudeSettingsURL,
-            adderallURL: launchAgentInstaller.cliURL
+            adderailURL: launchAgentInstaller.cliURL
         )
         let hadInstalledIntegration = hasInstalledIntegration()
         let hookPlan = try hookInstaller.prepareInstall()
@@ -58,10 +65,35 @@ struct IntegrationInstaller {
         )
     }
 
+    private func installCodex() throws -> CodexIntegrationInstallResult {
+        let hookInstaller = CodexHookSettingsInstaller(
+            hooksURL: codexHooksURL,
+            adderailURL: launchAgentInstaller.cliURL
+        )
+        let hadInstalledIntegration = hasInstalledIntegration()
+        let hookPlan = try hookInstaller.prepareInstall()
+        let launchAgentResult = try launchAgentInstaller.install()
+        let hookResult: CodexHookSettingsChange
+
+        do {
+            hookResult = try hookInstaller.install(preparedPlan: hookPlan)
+        } catch {
+            if hadInstalledIntegration == false {
+                _ = try? launchAgentInstaller.uninstall()
+            }
+            throw error
+        }
+
+        return CodexIntegrationInstallResult(
+            launchAgentResult: launchAgentResult,
+            hookResult: hookResult
+        )
+    }
+
     private func installPi() throws -> PiIntegrationInstallResult {
         let extensionInstaller = PiExtensionInstaller(
             extensionURL: piExtensionURL,
-            adderallURL: launchAgentInstaller.cliURL
+            adderailURL: launchAgentInstaller.cliURL
         )
         let hadInstalledIntegration = hasInstalledIntegration()
         let extensionPlan = try extensionInstaller.prepareInstall()
@@ -86,7 +118,7 @@ struct IntegrationInstaller {
     private func uninstallClaude() throws -> ClaudeIntegrationUninstallResult {
         let hookResult = try ClaudeHookSettingsInstaller(
             settingsURL: claudeSettingsURL,
-            adderallURL: launchAgentInstaller.cliURL
+            adderailURL: launchAgentInstaller.cliURL
         ).uninstall()
         let launchAgentResult = try uninstallLaunchAgentIfNoIntegrationsRemain(excluding: .claude)
 
@@ -96,10 +128,23 @@ struct IntegrationInstaller {
         )
     }
 
+    private func uninstallCodex() throws -> CodexIntegrationUninstallResult {
+        let hookResult = try CodexHookSettingsInstaller(
+            hooksURL: codexHooksURL,
+            adderailURL: launchAgentInstaller.cliURL
+        ).uninstall()
+        let launchAgentResult = try uninstallLaunchAgentIfNoIntegrationsRemain(excluding: .codex)
+
+        return CodexIntegrationUninstallResult(
+            hookResult: hookResult,
+            launchAgentResult: launchAgentResult
+        )
+    }
+
     private func uninstallPi() throws -> PiIntegrationUninstallResult {
         let extensionResult = try PiExtensionInstaller(
             extensionURL: piExtensionURL,
-            adderallURL: launchAgentInstaller.cliURL
+            adderailURL: launchAgentInstaller.cliURL
         ).uninstall()
         let launchAgentResult = try uninstallLaunchAgentIfNoIntegrationsRemain(excluding: .pi)
 
@@ -136,12 +181,17 @@ struct IntegrationInstaller {
         case .claude:
             return try ClaudeHookSettingsInstaller(
                 settingsURL: claudeSettingsURL,
-                adderallURL: launchAgentInstaller.cliURL
+                adderailURL: launchAgentInstaller.cliURL
+            ).isInstalled()
+        case .codex:
+            return try CodexHookSettingsInstaller(
+                hooksURL: codexHooksURL,
+                adderailURL: launchAgentInstaller.cliURL
             ).isInstalled()
         case .pi:
             return try PiExtensionInstaller(
                 extensionURL: piExtensionURL,
-                adderallURL: launchAgentInstaller.cliURL
+                adderailURL: launchAgentInstaller.cliURL
             ).isInstalled()
         }
     }
@@ -149,11 +199,13 @@ struct IntegrationInstaller {
 
 enum IntegrationInstallResult {
     case claude(ClaudeIntegrationInstallResult)
+    case codex(CodexIntegrationInstallResult)
     case pi(PiIntegrationInstallResult)
 }
 
 enum IntegrationUninstallResult {
     case claude(ClaudeIntegrationUninstallResult)
+    case codex(CodexIntegrationUninstallResult)
     case pi(PiIntegrationUninstallResult)
 }
 
@@ -164,6 +216,16 @@ struct ClaudeIntegrationInstallResult {
 
 struct ClaudeIntegrationUninstallResult {
     let hookResult: ClaudeHookSettingsChange
+    let launchAgentResult: LaunchAgentUninstallResult?
+}
+
+struct CodexIntegrationInstallResult {
+    let launchAgentResult: LaunchAgentInstallResult
+    let hookResult: CodexHookSettingsChange
+}
+
+struct CodexIntegrationUninstallResult {
+    let hookResult: CodexHookSettingsChange
     let launchAgentResult: LaunchAgentUninstallResult?
 }
 

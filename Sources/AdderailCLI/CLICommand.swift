@@ -1,4 +1,4 @@
-import AdderallShared
+import AdderailShared
 import ArgumentParser
 import Foundation
 
@@ -14,17 +14,19 @@ enum CLICommand: Equatable {
 
 enum HookProvider: Equatable {
     case claude
+    case codex
 }
 
 enum IntegrationProvider: Equatable, CaseIterable {
     case claude
+    case codex
     case pi
 }
 
 struct CLIParser {
     func parse(arguments: [String]) throws -> CLICommand {
         do {
-            var command = try AdderallCommand.parseAsRoot(arguments)
+            var command = try AdderailCommand.parseAsRoot(arguments)
 
             guard let cliCommand = command as? CLICommandConvertible else {
                 if arguments.isEmpty {
@@ -46,11 +48,11 @@ struct CLIParsingError: Error {
     let underlyingError: Error
 
     var message: String {
-        AdderallCommand.fullMessage(for: underlyingError)
+        AdderailCommand.fullMessage(for: underlyingError)
     }
 
     var exitCode: Int32 {
-        AdderallCommand.exitCode(for: underlyingError).rawValue
+        AdderailCommand.exitCode(for: underlyingError).rawValue
     }
 }
 
@@ -66,9 +68,9 @@ private protocol CLICommandConvertible {
     var command: CLICommand { get }
 }
 
-private struct AdderallCommand: ParsableCommand {
+private struct AdderailCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "adderall",
+        commandName: "adderail",
         abstract: "Keep a Mac awake while an agent lease is active.",
         subcommands: [
             Begin.self,
@@ -144,7 +146,7 @@ private struct End: ParsableCommand, CLICommandConvertible {
 private struct Hook: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Run from an agent hook.",
-        subcommands: [ClaudeHook.self]
+        subcommands: [ClaudeHook.self, CodexHook.self]
     )
 }
 
@@ -159,10 +161,21 @@ private struct ClaudeHook: ParsableCommand, CLICommandConvertible {
     }
 }
 
+private struct CodexHook: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "codex",
+        abstract: "Run from a Codex hook."
+    )
+
+    var command: CLICommand {
+        .hook(.codex)
+    }
+}
+
 private struct Install: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Install an agent integration.",
-        subcommands: [InstallClaude.self, InstallPi.self]
+        subcommands: [InstallClaude.self, InstallCodex.self, InstallPi.self]
     )
 }
 
@@ -174,6 +187,17 @@ private struct InstallClaude: ParsableCommand, CLICommandConvertible {
 
     var command: CLICommand {
         .install(.claude)
+    }
+}
+
+private struct InstallCodex: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "codex",
+        abstract: "Install the Codex integration."
+    )
+
+    var command: CLICommand {
+        .install(.codex)
     }
 }
 
@@ -191,7 +215,7 @@ private struct InstallPi: ParsableCommand, CLICommandConvertible {
 private struct Uninstall: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Uninstall an agent integration.",
-        subcommands: [UninstallClaude.self, UninstallPi.self]
+        subcommands: [UninstallClaude.self, UninstallCodex.self, UninstallPi.self]
     )
 }
 
@@ -203,6 +227,17 @@ private struct UninstallClaude: ParsableCommand, CLICommandConvertible {
 
     var command: CLICommand {
         .uninstall(.claude)
+    }
+}
+
+private struct UninstallCodex: ParsableCommand, CLICommandConvertible {
+    static let configuration = CommandConfiguration(
+        commandName: "codex",
+        abstract: "Uninstall the Codex integration."
+    )
+
+    var command: CLICommand {
+        .uninstall(.codex)
     }
 }
 

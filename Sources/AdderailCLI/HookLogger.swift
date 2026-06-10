@@ -3,12 +3,12 @@ import Foundation
 struct HookLogger {
     private let fileURL: URL
 
-    static func userDefault() -> HookLogger? {
+    static func userDefault(provider: String = "claude") -> HookLogger? {
         guard let libraryURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first else {
             return nil
         }
 
-        return HookLogger(fileURL: libraryURL.appending(path: "Logs/Adderall/claude-hooks.log"))
+        return HookLogger(fileURL: libraryURL.appending(path: "Logs/Adderail/\(provider)-hooks.log"))
     }
 
     func log(_ message: String) {

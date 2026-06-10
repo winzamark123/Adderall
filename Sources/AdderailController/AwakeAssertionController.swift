@@ -24,9 +24,9 @@ final class AwakeAssertionController {
         var newAssertionID = IOPMAssertionID(0)
         let result = IOPMAssertionCreateWithDescription(
             kIOPMAssertionTypeNoIdleSleep as CFString,
-            "Adderall" as CFString,
+            "Adderail" as CFString,
             "Active agent lease" as CFString,
-            "Adderall is keeping the Mac awake while an agent lease is active." as CFString,
+            "Adderail is keeping the Mac awake while an agent lease is active." as CFString,
             nil,
             0,
             nil,

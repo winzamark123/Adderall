@@ -14,7 +14,7 @@ public struct SnapshotStore: Sendable {
             throw SnapshotStoreError.applicationSupportDirectoryUnavailable
         }
 
-        return SnapshotStore(fileURL: applicationSupportURL.appending(path: "Adderall/controller-state.json"))
+        return SnapshotStore(fileURL: applicationSupportURL.appending(path: "Adderail/controller-state.json"))
     }
 
     public func load() throws -> ControllerSnapshot? {

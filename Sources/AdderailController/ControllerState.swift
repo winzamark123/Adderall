@@ -1,8 +1,8 @@
-import AdderallShared
+import AdderailShared
 import Foundation
 
 final class ControllerState {
-    private let queue = DispatchQueue(label: "com.example.adderall.controller.state")
+    private let queue = DispatchQueue(label: "com.adderail.controller.state")
     private let snapshotStore: SnapshotStore
     private let awakeAssertionController: AwakeAssertionController
     private var leaseManager: LeaseManager

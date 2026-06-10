@@ -1,11 +1,11 @@
-import AdderallShared
+import AdderailShared
 import Foundation
 
 struct ControllerClient {
     let machServiceName: String
     let timeout: TimeInterval
 
-    init(machServiceName: String = adderallControllerMachServiceName, timeout: TimeInterval = 3) {
+    init(machServiceName: String = adderailControllerMachServiceName, timeout: TimeInterval = 3) {
         self.machServiceName = machServiceName
         self.timeout = timeout
     }
@@ -26,7 +26,7 @@ struct ControllerClient {
             semaphore.signal()
         }
 
-        guard let controller = proxy as? AdderallControllerXPCProtocol else {
+        guard let controller = proxy as? AdderailControllerXPCProtocol else {
             throw ControllerClientError.invalidRemoteProxy
         }
 
@@ -89,13 +89,13 @@ enum ControllerClientError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidRemoteProxy:
-            return "Could not create an XPC proxy for the Adderall controller."
+            return "Could not create an XPC proxy for the Adderail controller."
         case .timeout:
-            return "Timed out waiting for the Adderall controller. Is the LaunchAgent loaded?"
+            return "Timed out waiting for the Adderail controller. Is the LaunchAgent loaded?"
         case .emptyResponse:
-            return "The Adderall controller returned no response."
+            return "The Adderail controller returned no response."
         case .unsendableCommand:
-            return "This command cannot be sent directly to the Adderall controller."
+            return "This command cannot be sent directly to the Adderail controller."
         }
     }
 }

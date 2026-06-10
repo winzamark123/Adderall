@@ -1,8 +1,8 @@
 import Foundation
 
-public let adderallControllerMachServiceName = "com.example.adderall.controller"
+public let adderailControllerMachServiceName = "com.adderail.controller"
 
-@objc public protocol AdderallControllerXPCProtocol {
+@objc public protocol AdderailControllerXPCProtocol {
     @objc(beginWithProvider:sessionID:ttlSeconds:reply:)
     func begin(provider: String, sessionID: String, ttlSeconds: NSNumber, reply: @escaping (NSDictionary) -> Void)
 
@@ -17,7 +17,7 @@ public let adderallControllerMachServiceName = "com.example.adderall.controller"
 }
 
 public func makeControllerXPCInterface() -> NSXPCInterface {
-    NSXPCInterface(with: AdderallControllerXPCProtocol.self)
+    NSXPCInterface(with: AdderailControllerXPCProtocol.self)
 }
 
 public func successResponse(_ snapshot: ControllerSnapshot) -> NSDictionary {
